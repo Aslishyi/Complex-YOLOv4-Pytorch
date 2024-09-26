@@ -13,10 +13,9 @@ import sys
 import torch
 from torch.utils.data import DataLoader
 
-sys.path.append('../')
+from ..data_process.kitti_dataset import KittiDataset
+from ..data_process.transformation import Compose, OneOf, Random_Rotation, Random_Scaling, Horizontal_Flip, Cutout
 
-from data_process.kitti_dataset import KittiDataset
-from data_process.transformation import Compose, OneOf, Random_Rotation, Random_Scaling, Horizontal_Flip, Cutout
 
 
 def create_train_dataloader(configs):

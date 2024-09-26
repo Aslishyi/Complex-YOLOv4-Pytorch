@@ -16,9 +16,9 @@ import torch
 from shapely.geometry import Polygon
 from scipy.spatial import ConvexHull
 
-sys.path.append('../')
+# sys.path.append('../')
 
-from utils.cal_intersection_rotated_boxes import intersection_area, PolyArea2D
+from src.utils.cal_intersection_rotated_boxes import intersection_area, PolyArea2D
 
 
 def cvt_box_2_polygon(box):

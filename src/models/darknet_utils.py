@@ -8,8 +8,8 @@ import sys
 
 import torch
 
-sys.path.append('../')
-from utils.torch_utils import convert2cpu
+# from utils.torch_utils import convert2cpu
+from ..utils.torch_utils import convert2cpu
 
 __all__ = ['parse_cfg', 'print_cfg', 'load_conv', 'load_conv_bn', 'save_conv', 'save_conv_bn', 'load_fc', 'save_fc']
 

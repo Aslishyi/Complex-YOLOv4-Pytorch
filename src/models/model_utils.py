@@ -12,9 +12,9 @@ import sys
 
 import torch
 
-sys.path.append('../')
-
-from models.darknet2pytorch import Darknet
+# sys.path.append('../')
+#
+from ..models.darknet2pytorch import Darknet
 
 
 def create_model(configs):

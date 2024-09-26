@@ -6,9 +6,9 @@ import torch
 import numpy as np
 from shapely.geometry import Polygon
 
-sys.path.append('../')
+# sys.path.append('../')
 
-import data_process.kitti_bev_utils as bev_utils
+import src.data_process.kitti_bev_utils as bev_utils
 
 
 def cvt_box_2_polygon(box):

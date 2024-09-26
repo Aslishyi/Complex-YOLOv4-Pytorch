@@ -10,10 +10,10 @@ import sys
 import cv2
 import numpy as np
 
-sys.path.append('../')
-
-import config.kitti_config as cnf
-
+# sys.path.append('../')
+#
+# import config.kitti_config as cnf
+from ..config import kitti_config as cnf
 
 def removePoints(PointCloud, BoundaryCond):
     # Boundary condition
