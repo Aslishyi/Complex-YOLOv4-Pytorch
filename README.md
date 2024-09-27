@@ -1,5 +1,12 @@
 # Complex YOLOv4
 
+```bash
+.\venv\Scripts\Activate
+deactivate
+```
+
+
+
 [![python-image]][python-url]
 [![pytorch-image]][pytorch-url]
 
@@ -30,6 +37,8 @@ The PyTorch Implementation based on YOLOv4 of the paper: [Complex-YOLO: Real-tim
 
 ## 2. Getting Started
 ### 2.1. Requirement
+
+python version：3.12.3
 
 ```shell script
 pip install -U -r requirements.txt

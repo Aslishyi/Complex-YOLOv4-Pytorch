@@ -20,9 +20,10 @@ import torch
 import torch.nn.functional as F
 import cv2
 
-from ..data_process import transformation, kitti_bev_utils, kitti_data_utils
-from ..config import kitti_config as cnf
+sys.path.append('../')
 
+from data_process import transformation, kitti_bev_utils, kitti_data_utils
+import config.kitti_config as cnf
 
 
 class KittiDataset(Dataset):

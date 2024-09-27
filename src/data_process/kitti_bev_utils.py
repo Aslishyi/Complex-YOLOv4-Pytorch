@@ -10,10 +10,10 @@ import sys
 import cv2
 import numpy as np
 
-# sys.path.append('../')
-#
-# import config.kitti_config as cnf
-from ..config import kitti_config as cnf
+sys.path.append('../')
+
+import config.kitti_config as cnf
+
 
 def removePoints(PointCloud, BoundaryCond):
     # Boundary condition
@@ -159,13 +159,32 @@ def inverse_yolo_target(targets, bc):
     return np.array(labels)
 
 
+# # send parameters in bev image coordinates format
+# def drawRotatedBox(img, x, y, w, l, yaw, color):
+#     bev_corners = get_corners(x, y, w, l, yaw)
+#     corners_int = bev_corners.reshape(-1, 1, 2).astype(int)
+#     cv2.polylines(img, [corners_int], True, color, 2)
+#     corners_int = bev_corners.reshape(-1, 2)
+#     cv2.line(img, (corners_int[0, 0], corners_int[0, 1]), (corners_int[3, 0], corners_int[3, 1]), (255, 255, 0), 2)
 # send parameters in bev image coordinates format
 def drawRotatedBox(img, x, y, w, l, yaw, color):
     bev_corners = get_corners(x, y, w, l, yaw)
-    corners_int = bev_corners.reshape(-1, 1, 2).astype(int)
-    cv2.polylines(img, [corners_int], True, color, 2)
-    corners_int = bev_corners.reshape(-1, 2)
-    cv2.line(img, (corners_int[0, 0], corners_int[0, 1]), (corners_int[3, 0], corners_int[3, 1]), (255, 255, 0), 2)
+
+    # Ensure coordinates are in integer format
+    corners_int = bev_corners.astype(int)
+
+    # Reshape for cv2.polylines to accept the array format
+    corners_poly = corners_int.reshape(-1, 1, 2)
+
+    # Draw the rotated box using polylines
+    cv2.polylines(img, [corners_poly], True, color, 2)
+
+    # Ensure points are tuples for cv2.line and use int format
+    pt1 = (int(corners_int[0, 0]), int(corners_int[0, 1]))
+    pt2 = (int(corners_int[3, 0]), int(corners_int[3, 1]))
+
+    # Draw the line between two points
+    cv2.line(img, pt1, pt2, (255, 255, 0), 2)
 
 
 def draw_box_in_bev(rgb_map, target):

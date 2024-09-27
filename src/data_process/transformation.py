@@ -10,8 +10,9 @@ import math
 import numpy as np
 import torch
 
-from ..config import kitti_config as cnf
+sys.path.append('../')
 
+from config import kitti_config as cnf
 
 
 def angle_in_limit(angle):

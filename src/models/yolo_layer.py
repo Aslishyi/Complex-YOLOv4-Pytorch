@@ -17,10 +17,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# sys.path.append('../')
+sys.path.append('../')
 
-from ..utils.torch_utils import to_cpu
-from ..utils.iou_rotated_boxes_utils import iou_pred_vs_target_boxes, iou_rotated_boxes_targets_vs_anchors, \
+from utils.torch_utils import to_cpu
+from utils.iou_rotated_boxes_utils import iou_pred_vs_target_boxes, iou_rotated_boxes_targets_vs_anchors, \
     get_polygons_areas_fix_xy
 
 

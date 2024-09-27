@@ -12,11 +12,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as  np
 
+sys.path.append('../')
 
-from yolo_layer import YoloLayer
-from darknet_utils import parse_cfg, print_cfg, load_fc, load_conv_bn, load_conv
-# from torch_utils import to_cpu
-from ..utils.torch_utils import to_cpu
+from models.yolo_layer import YoloLayer
+from models.darknet_utils import parse_cfg, print_cfg, load_fc, load_conv_bn, load_conv
+from utils.torch_utils import to_cpu
+
 
 class Mish(nn.Module):
     def __init__(self):
