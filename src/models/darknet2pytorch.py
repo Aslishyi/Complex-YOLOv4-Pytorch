@@ -29,6 +29,7 @@ class Mish(nn.Module):
 
 
 class MaxPoolDark(nn.Module):
+    # Darknet特有的最大池化层
     def __init__(self, size=2, stride=1):
         super(MaxPoolDark, self).__init__()
         self.size = size

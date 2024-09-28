@@ -27,8 +27,19 @@ import config.kitti_config as cnf
 
 
 class KittiDataset(Dataset):
+
     def __init__(self, dataset_dir, mode='train', lidar_transforms=None, aug_transforms=None, multiscale=False,
                  num_samples=None, mosaic=False, random_padding=False):
+        """
+        dataset_dir：数据集的根目录。
+        mode：数据集模式，支持'train', 'val', 'test'。
+        lidar_transforms：LiDAR数据的变换函数。
+        aug_transforms：RGB图像的增强变换函数。
+        multiscale：是否支持多尺度训练。
+        num_samples：指定采样的样本数。
+        mosaic：是否使用Mosaic数据增强。
+        random_padding：是否进行随机填充。
+        """
         self.dataset_dir = dataset_dir
         assert mode in ['train', 'val', 'test'], 'Invalid mode: {}'.format(mode)
         self.mode = mode

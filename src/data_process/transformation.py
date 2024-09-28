@@ -28,6 +28,7 @@ def angle_in_limit(angle):
 
 
 def camera_to_lidar(x, y, z, V2C=None, R0=None, P2=None):
+    # 将相机坐标系下的点 (x, y, z) 转换为 LiDAR 坐标系
     p = np.array([x, y, z, 1])
     if V2C is None or R0 is None:
         p = np.matmul(cnf.R0_inv, p)
@@ -43,6 +44,7 @@ def camera_to_lidar(x, y, z, V2C=None, R0=None, P2=None):
 
 
 def lidar_to_camera(x, y, z, V2C=None, R0=None, P2=None):
+    # 将 LiDAR 坐标系下的点 (x, y, z) 转换为相机坐标系
     p = np.array([x, y, z, 1])
     if V2C is None or R0 is None:
         p = np.matmul(cnf.Tr_velo_to_cam, p)
@@ -53,7 +55,7 @@ def lidar_to_camera(x, y, z, V2C=None, R0=None, P2=None):
     p = p[0:3]
     return tuple(p)
 
-
+# 这些函数将一组点（由点的列表表示）在相机和 LiDAR 坐标系之间进行转换
 def camera_to_lidar_point(points):
     # (N, 3) -> (N, 3)
     N = points.shape[0]
@@ -63,7 +65,6 @@ def camera_to_lidar_point(points):
     points = np.matmul(cnf.Tr_velo_to_cam_inv, points).T  # (4, N) -> (N, 4)
     points = points[:, 0:3]
     return points.reshape(-1, 3)
-
 
 def lidar_to_camera_point(points, V2C=None, R0=None):
     # (N, 3) -> (N, 3)
@@ -78,6 +79,7 @@ def lidar_to_camera_point(points, V2C=None, R0=None):
         points = np.matmul(R0, points).T
     points = points[:, 0:3]
     return points.reshape(-1, 3)
+
 
 
 def camera_to_lidar_box(boxes, V2C=None, R0=None, P2=None):
@@ -312,6 +314,14 @@ def inverse_rigid_trans(Tr):
     return inv_Tr
 
 
+"""
+这些类实现了数据增强操作：
+Compose：将多个增强操作组合在一起按顺序应用。
+OneOf：从一组操作中随机选择一个进行应用。
+Random_Rotation：对 LiDAR 数据和边界框进行随机旋转。
+Random_Scaling：对 LiDAR 数据和边界框进行随机缩放。
+Horizontal_Flip：水平翻转图像和标签。
+"""
 class Compose(object):
     def __init__(self, transforms, p=1.0):
         self.transforms = transforms

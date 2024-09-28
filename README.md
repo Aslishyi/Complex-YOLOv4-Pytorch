@@ -1,14 +1,14 @@
 # Complex YOLOv4
 
-```bash
+```shell script
 .\venv\Scripts\Activate
 deactivate
 ```
 
 
 
-[![python-image]][python-url]
-[![pytorch-image]][pytorch-url]
+[![python-image]]3.7
+[![pytorch-image]]1.13.1+cu116
 
 The PyTorch Implementation based on YOLOv4 of the paper: [Complex-YOLO: Real-time 3D Object Detection on Point Clouds](https://arxiv.org/pdf/1803.06199.pdf)
 
@@ -38,8 +38,8 @@ The PyTorch Implementation based on YOLOv4 of the paper: [Complex-YOLO: Real-tim
 ## 2. Getting Started
 ### 2.1. Requirement
 
-python version：3.12.3
-
+python version:3.7
+pytorch version:1.13.1+cu116
 ```shell script
 pip install -U -r requirements.txt
 ```
@@ -87,25 +87,25 @@ cd src/data_process
 ```
 
 - To visualize BEV maps and camera images (with 3D boxes), let's execute _**(the `output-width` param can be changed to 
-show the images in a bigger/smaller window)**_:
+show the images in a bigger/smaller window)**_: [done]
 
 ```shell script
 python kitti_dataloader.py --output-width 608
 ```
 
-- To visualize mosaics that are composed from 4 BEV maps (Using during training only), let's execute:
+- To visualize mosaics that are composed from 4 BEV maps (Using during training only), let's execute: [done]
 
 ```shell script
 python kitti_dataloader.py --show-train-data --mosaic --output-width 608 
 ```
 
-By default, there is _**no padding**_ for the output mosaics, the feature could be activated by executing:
+By default, there is _**no padding**_ for the output mosaics, the feature could be activated by executing: [done]
 
 ```shell script
 python kitti_dataloader.py --show-train-data --mosaic --random-padding --output-width 608 
 ```
 
-- To visualize cutout augmentation, let's execute:
+- To visualize cutout augmentation, let's execute: [done]
 
 ```shell script
 python kitti_dataloader.py --show-train-data --cutout_prob 1. --cutout_nholes 1 --cutout_fill_value 1. --cutout_ratio 0.3 --output-width 608
@@ -114,16 +114,17 @@ python kitti_dataloader.py --show-train-data --cutout_prob 1. --cutout_nholes 1 
 #### 2.4.2. Inference
 
 Download the trained model from [**_here_**](https://drive.google.com/drive/folders/1RHD9PBvk-9SjbKwoi_Q1kl9-UGFo2Pth?usp=sharing), 
-then put it to `${ROOT}/checkpoints/` and execute:
+then put it to `${ROOT}/checkpoints/` and execute: [done]
 
 ```shell script
 python test.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --show_image
 ```
 
 #### 2.4.3. Evaluation
-
+[done]
 ```shell script
 python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --cfgfile <CFG> --img_size <SIZE> --conf-thresh <THRESH> --nms-thresh <THRESH> --iou-thresh <THRESH>
+python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --img_size 640 --conf-thresh 0.5 --nms-thresh 0.4 --iou-thresh 0.5
 ```
 (The `conf-thresh`, `nms-thresh`, and `iou-thresh` params can be adjusted. By default, these params have been set to _**0.5**_)
 
@@ -131,8 +132,10 @@ python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --cfgfile <CFG> --img_si
 
 ##### 2.4.4.1. Single machine, single gpu
 
+[todo]
 ```shell script
 python train.py --gpu_idx 0 --batch_size <N> --num_workers <N>...
+python train.py --gpu_idx 0 --batch_size 4 --num_workers 4 --num_epochs 50 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --checkpoint_freq 5
 ```
 
 ##### 2.4.4.2. Multi-processing Distributed Data Parallel Training
