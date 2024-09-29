@@ -7,8 +7,9 @@ deactivate
 
 
 
-[![python-image]]3.7
-[![pytorch-image]]1.13.1+cu116
+python version: 3.7
+
+pytorch version: 1.13.1+cu116
 
 The PyTorch Implementation based on YOLOv4 of the paper: [Complex-YOLO: Real-time 3D Object Detection on Point Clouds](https://arxiv.org/pdf/1803.06199.pdf)
 
@@ -38,8 +39,7 @@ The PyTorch Implementation based on YOLOv4 of the paper: [Complex-YOLO: Real-tim
 ## 2. Getting Started
 ### 2.1. Requirement
 
-python version:3.7
-pytorch version:1.13.1+cu116
+
 ```shell script
 pip install -U -r requirements.txt
 ```
@@ -118,13 +118,18 @@ then put it to `${ROOT}/checkpoints/` and execute: [done]
 
 ```shell script
 python test.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --show_image
+python test.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_40.pth --cfgfile ./config/cfg/complex_yolov4.cfg --show_image
 ```
 
 #### 2.4.3. Evaluation
 [done]
 ```shell script
 python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --cfgfile <CFG> --img_size <SIZE> --conf-thresh <THRESH> --nms-thresh <THRESH> --iou-thresh <THRESH>
-python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --img_size 640 --conf-thresh 0.5 --nms-thresh 0.4 --iou-thresh 0.5
+python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --img_size 640 --conf-thresh 0.5 --nms-thresh 0.5 --iou-thresh 0.5
+python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_40.pth --cfgfile ./config/cfg/complex_yolov4.cfg --img_size 640 --conf-thresh 0.5 --nms-thresh 0.5 --iou-thresh 0.5
+
+# useful
+python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_40.pth --cfgfile ./config/cfg/complex_yolov4.cfg
 ```
 (The `conf-thresh`, `nms-thresh`, and `iou-thresh` params can be adjusted. By default, these params have been set to _**0.5**_)
 
@@ -371,7 +376,7 @@ optional arguments:
                         for evaluation - the threshold for IoU
 ```
 
-[python-image]: https://img.shields.io/badge/Python-3.6-ff69b4.svg
+[python-image]: https://img.shields.io/badge/Python-3.7-ff69b4.svg
 [python-url]: https://www.python.org/
 [pytorch-image]: https://img.shields.io/badge/PyTorch-1.5-2BAF2B.svg
 [pytorch-url]: https://pytorch.org/
