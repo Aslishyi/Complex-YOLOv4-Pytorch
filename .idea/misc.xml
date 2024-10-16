@@ -3,7 +3,7 @@
   <component name="Black">
     <option name="sdkName" value="python3_12_3" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (Complex-YOLOv4-Pytorch)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="python3_9" project-jdk-type="Python SDK" />
   <component name="PythonCompatibilityInspectionAdvertiser">
     <option name="version" value="3" />
   </component>

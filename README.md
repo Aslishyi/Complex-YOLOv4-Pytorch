@@ -2,6 +2,7 @@
 
 ```shell script
 .\venv\Scripts\Activate
+source venv/Scripts/activate
 deactivate
 ```
 
@@ -117,19 +118,24 @@ Download the trained model from [**_here_**](https://drive.google.com/drive/fold
 then put it to `${ROOT}/checkpoints/` and execute: [done]
 
 ```shell script
+cd src
+
 python test.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --show_image
-python test.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_40.pth --cfgfile ./config/cfg/complex_yolov4.cfg --show_image
+python test.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_100.pth --cfgfile ./config/cfg/complex_yolov4.cfg --show_image
 ```
 
 #### 2.4.3. Evaluation
 [done]
 ```shell script
+cd src
+
 python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --cfgfile <CFG> --img_size <SIZE> --conf-thresh <THRESH> --nms-thresh <THRESH> --iou-thresh <THRESH>
 python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --img_size 640 --conf-thresh 0.5 --nms-thresh 0.5 --iou-thresh 0.5
 python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_40.pth --cfgfile ./config/cfg/complex_yolov4.cfg --img_size 640 --conf-thresh 0.5 --nms-thresh 0.5 --iou-thresh 0.5
 
 # useful
-python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_40.pth --cfgfile ./config/cfg/complex_yolov4.cfg
+python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg
+python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/Model_complexer_yolo_epoch_100.pth --cfgfile ./config/cfg/complex_yolov4.cfg
 ```
 (The `conf-thresh`, `nms-thresh`, and `iou-thresh` params can be adjusted. By default, these params have been set to _**0.5**_)
 
@@ -139,8 +145,14 @@ python evaluate.py --gpu_idx 0 --pretrained_path ../checkpoints/complexer_yolo/M
 
 [todo]
 ```shell script
+cd src
+
 python train.py --gpu_idx 0 --batch_size <N> --num_workers <N>...
 python train.py --gpu_idx 0 --batch_size 4 --num_workers 4 --num_epochs 50 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --checkpoint_freq 5
+python train.py --gpu_idx 0 --batch_size 8 --num_workers 4 --num_epochs 50 --checkpoint_freq 5
+
+python train.py --gpu_idx 0 --batch_size 6 --mosaic --random-padding --multiscale_training --num_workers 4 --num_epochs 50 --checkpoint_freq 5
+
 ```
 
 ##### 2.4.4.2. Multi-processing Distributed Data Parallel Training
@@ -177,7 +189,7 @@ To reproduce the results, you can run the bash shell script
 - To track the training progress, go to the `logs/` folder and 
 
 ```shell script
-cd logs/<saved_fn>/tensorboard/
+cd logs/complexer_yolo/tensorboard/
 tensorboard --logdir=./
 ```
 

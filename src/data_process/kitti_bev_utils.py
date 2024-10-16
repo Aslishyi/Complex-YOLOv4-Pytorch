@@ -120,6 +120,7 @@ def get_corners(x, y, w, l, yaw):
 
 
 def build_yolo_target(labels):
+# 输出yolo模型接受的数据
     bc = cnf.boundary
     target = []
     for i in range(labels.shape[0]):

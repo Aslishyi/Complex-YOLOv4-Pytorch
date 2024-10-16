@@ -15,13 +15,16 @@ import torch
 sys.path.append('../')
 
 from models.darknet2pytorch import Darknet
-
+from models.yolov8net import YOLOv8Backbone  # 确保引用正确的 YOLOv8 模型定义
 
 def create_model(configs):
     """Create model based on architecture name"""
     if (configs.arch == 'darknet') and (configs.cfgfile is not None):
         print('using darknet')
         model = Darknet(cfgfile=configs.cfgfile, use_giou_loss=configs.use_giou_loss)
+    elif configs.arch == 'yolov8':
+        print('using yolov8')
+        model = YOLOv8Backbone(num_classes=configs.num_classes)
     else:
         assert False, 'Undefined model backbone'
 
