@@ -1,38 +1,183 @@
-### Modified kitti_bev_utils.py to support YOLOv8's anchor-free approach ###
+"""
+# -*- coding: utf-8 -*-
+-----------------------------------------------------------------------------------
+# Refer: https://github.com/ghimiredhikura/Complex-YOLOv3
+"""
 
+import math
+import sys
+
+import cv2
 import numpy as np
-from shapely.geometry import Polygon
 
-def build_yolo_target(labels, img_size, num_classes):
-    """
-    Converts the given labels into YOLOv8 compatible anchor-free targets.
+sys.path.append('../')
 
-    Args:
-        labels: A list of labels, where each label contains [class, x, y, w, l, sin(yaw), cos(yaw)].
-        img_size: The size of the image (height, width).
-        num_classes: The number of classes for the dataset.
+import config.kitti_config as cnf
 
-    Returns:
-        targets: A tensor with shape [num_objects, 5 + num_classes], including center_x, center_y, width, height, and class confidences.
-    """
-    targets = []
-    for label in labels:
-        cls, x, y, w, l, _, _ = label
-        center_x = x / img_size[1]  # Normalized to [0, 1]
-        center_y = y / img_size[0]  # Normalized to [0, 1]
-        width = w / img_size[1]  # Normalized to [0, 1]
-        height = l / img_size[0]  # Normalized to [0, 1]
+def removePoints(PointCloud, BoundaryCond):
+    # Boundary condition
+    minX = BoundaryCond['minX']
+    maxX = BoundaryCond['maxX']
+    minY = BoundaryCond['minY']
+    maxY = BoundaryCond['maxY']
+    minZ = BoundaryCond['minZ']
+    maxZ = BoundaryCond['maxZ']
 
-        # Create one-hot encoding for class label
-        class_confidences = [0] * num_classes
-        class_confidences[int(cls)] = 1
+    # Remove the point out of range x,y,z
+    mask = np.where((PointCloud[:, 0] >= minX) & (PointCloud[:, 0] <= maxX) & (PointCloud[:, 1] >= minY) & (
+            PointCloud[:, 1] <= maxY) & (PointCloud[:, 2] >= minZ) & (PointCloud[:, 2] <= maxZ))
+    PointCloud = PointCloud[mask]
 
-        target = [center_x, center_y, width, height] + class_confidences
-        targets.append(target)
+    PointCloud[:, 2] = PointCloud[:, 2] - minZ
 
-    return np.array(targets, dtype=np.float32)
+    return PointCloud
 
-### Utility functions for data processing remain the same ###
+def makeBVFeature(PointCloud_, Discretization, bc):
+    Height = cnf.BEV_HEIGHT + 1
+    Width = cnf.BEV_WIDTH + 1
 
-# Functions like `read_labels_for_bevbox` and other geometric transformations can remain the same
-# as their main role is to preprocess the data for target conversion or visualization.
+    # Discretize Feature Map
+    PointCloud = np.copy(PointCloud_)
+    PointCloud[:, 0] = np.int_(np.floor(PointCloud[:, 0] / Discretization))
+    PointCloud[:, 1] = np.int_(np.floor(PointCloud[:, 1] / Discretization) + Width / 2)
+
+    # sort-3times
+    indices = np.lexsort((-PointCloud[:, 2], PointCloud[:, 1], PointCloud[:, 0]))
+    PointCloud = PointCloud[indices]
+
+    # Height Map
+    heightMap = np.zeros((Height, Width))
+
+    _, indices = np.unique(PointCloud[:, 0:2], axis=0, return_index=True)
+    PointCloud_frac = PointCloud[indices]
+    # some important problem is image coordinate is (y,x), not (x,y)
+    max_height = float(np.abs(bc['maxZ'] - bc['minZ']))
+    heightMap[np.int_(PointCloud_frac[:, 0]), np.int_(PointCloud_frac[:, 1])] = PointCloud_frac[:, 2] / max_height
+
+    # Intensity Map & DensityMap
+    intensityMap = np.zeros((Height, Width))
+    densityMap = np.zeros((Height, Width))
+
+    _, indices, counts = np.unique(PointCloud[:, 0:2], axis=0, return_index=True, return_counts=True)
+    PointCloud_top = PointCloud[indices]
+
+    normalizedCounts = np.minimum(1.0, np.log(counts + 1) / np.log(64))
+
+    intensityMap[np.int_(PointCloud_top[:, 0]), np.int_(PointCloud_top[:, 1])] = PointCloud_top[:, 3]
+    densityMap[np.int_(PointCloud_top[:, 0]), np.int_(PointCloud_top[:, 1])] = normalizedCounts
+
+    RGB_Map = np.zeros((3, Height - 1, Width - 1))
+    RGB_Map[2, :, :] = densityMap[:cnf.BEV_HEIGHT, :cnf.BEV_WIDTH]  # r_map
+    RGB_Map[1, :, :] = heightMap[:cnf.BEV_HEIGHT, :cnf.BEV_WIDTH]  # g_map
+    RGB_Map[0, :, :] = intensityMap[:cnf.BEV_HEIGHT, :cnf.BEV_WIDTH]  # b_map
+
+    return RGB_Map.transpose(1, 2, 0)  # Transpose to match YOLOv8 input format (H, W, C)
+
+def read_labels_for_bevbox(objects):
+    bbox_selected = []
+    for obj in objects:
+        if obj.cls_id != -1:
+            bbox = []
+            bbox.append(obj.cls_id)
+            bbox.extend([obj.t[0], obj.t[1], obj.t[2], obj.h, obj.w, obj.l, obj.ry])
+            bbox_selected.append(bbox)
+
+    if len(bbox_selected) == 0:
+        labels = np.zeros((1, 8), dtype=np.float32)
+        noObjectLabels = True
+    else:
+        labels = np.array(bbox_selected, dtype=np.float32)
+        noObjectLabels = False
+
+    return labels, noObjectLabels
+
+# bev image coordinates format
+def get_corners(x, y, w, l, yaw):
+    bev_corners = np.zeros((4, 2), dtype=np.float32)
+    cos_yaw = np.cos(yaw)
+    sin_yaw = np.sin(yaw)
+    # front left
+    bev_corners[0, 0] = x - w / 2 * cos_yaw - l / 2 * sin_yaw
+    bev_corners[0, 1] = y - w / 2 * sin_yaw + l / 2 * cos_yaw
+
+    # rear left
+    bev_corners[1, 0] = x - w / 2 * cos_yaw + l / 2 * sin_yaw
+    bev_corners[1, 1] = y - w / 2 * sin_yaw - l / 2 * cos_yaw
+
+    # rear right
+    bev_corners[2, 0] = x + w / 2 * cos_yaw + l / 2 * sin_yaw
+    bev_corners[2, 1] = y + w / 2 * sin_yaw - l / 2 * cos_yaw
+
+    # front right
+    bev_corners[3, 0] = x + w / 2 * cos_yaw - l / 2 * sin_yaw
+    bev_corners[3, 1] = y + w / 2 * sin_yaw + l / 2 * cos_yaw
+
+    return bev_corners
+
+def build_yolo_target(labels):
+    # 输出YOLOv8模型接受的数据
+    bc = cnf.boundary
+    target = []
+    for i in range(labels.shape[0]):
+        cl, x, y, z, h, w, l, yaw = labels[i]
+        # 将边界框的尺寸和位置转换为相对图像的归一化格式
+        if (bc["minX"] < x < bc["maxX"]) and (bc["minY"] < y < bc["maxY"]):
+            x1 = (x - bc["minX"]) / (bc["maxX"] - bc["minX"])
+            y1 = (y - bc["minY"]) / (bc["maxY"] - bc["minY"])
+            w1 = w / (bc["maxY"] - bc["minY"])
+            l1 = l / (bc["maxX"] - bc["minX"])
+            target.append([cl, x1, y1, w1, l1, yaw])  # 修改输出格式，使其适应YOLOv8
+
+    return np.array(target, dtype=np.float32)
+
+
+def inverse_yolo_target(targets, bc):
+    labels = []
+    for t in targets:
+        c, x, y, w, l, yaw = t
+        z, h = -1.55, 1.5
+        if c == 1:
+            h = 1.8
+        elif c == 2:
+            h = 1.4
+
+        y = y * (bc["maxY"] - bc["minY"]) + bc["minY"]
+        x = x * (bc["maxX"] - bc["minX"]) + bc["minX"]
+        w = w * (bc["maxY"] - bc["minY"])
+        l = l * (bc["maxX"] - bc["minX"])
+        w -= 0.3
+        l -= 0.3
+        labels.append([c, x, y, z, h, w, l, yaw])
+
+    return np.array(labels)
+
+def drawRotatedBox(img, x, y, w, l, yaw, color):
+    bev_corners = get_corners(x, y, w, l, yaw)
+
+    # Ensure coordinates are in integer format
+    corners_int = bev_corners.astype(int)
+
+    # Reshape for cv2.polylines to accept the array format
+    corners_poly = corners_int.reshape(-1, 1, 2)
+
+    # Draw the rotated box using polylines
+    cv2.polylines(img, [corners_poly], True, color, 2)
+
+    # Ensure points are tuples for cv2.line and use int format
+    pt1 = (int(corners_int[0, 0]), int(corners_int[0, 1]))
+    pt2 = (int(corners_int[3, 0]), int(corners_int[3, 1]))
+
+    # Draw the line between two points
+    cv2.line(img, pt1, pt2, (255, 255, 0), 2)
+
+def draw_box_in_bev(rgb_map, target):
+    for j in range(target.shape[0]):
+        if (np.sum(target[j, 1:]) == 0):
+            continue
+        cls_id = int(target[j][0])
+        x = target[j][1] * cnf.BEV_WIDTH
+        y = target[j][2] * cnf.BEV_HEIGHT
+        w = target[j][3] * cnf.BEV_WIDTH
+        l = target[j][4] * cnf.BEV_HEIGHT
+        yaw = target[j][5]
+        drawRotatedBox(rgb_map, x, y, w, l, yaw, cnf.colors[cls_id])

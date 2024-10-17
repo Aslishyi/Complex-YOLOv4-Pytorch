@@ -19,6 +19,41 @@ from data_process.kitti_dataset import KittiDataset
 from data_process.transformation import Compose, OneOf, Random_Rotation, Random_Scaling, Horizontal_Flip, Cutout
 
 
+def create_yolotrain_dataloader(configs):
+    """用于根据 configs 创建训练数据加载器"""
+
+    # 定义了一组Lidar点云数据的随机变换
+    train_lidar_transforms = OneOf([
+        Random_Rotation(limit_angle=20., p=1.0),
+        Random_Scaling(scaling_range=(0.95, 1.05), p=1.0)
+    ], p=0.66)
+
+    # 图像数据的增强操作
+    train_aug_transforms = Compose([
+        Horizontal_Flip(p=configs.hflip_prob),
+        Cutout(n_holes=configs.cutout_nholes, ratio=configs.cutout_ratio, fill_value=configs.cutout_fill_value,
+               p=configs.cutout_prob)
+    ], p=1.)
+
+    # 实例化训练数据集对象
+    train_dataset = KittiDataset(configs.dataset_dir, mode='train', lidar_transforms=train_lidar_transforms,
+                                 aug_transforms=train_aug_transforms, multiscale=configs.multiscale_training,
+                                 num_samples=configs.num_samples, mosaic=configs.mosaic,
+                                 random_padding=configs.random_padding)
+
+    # 初始化数据采样器
+    train_sampler = None
+    if configs.distributed:
+        train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
+
+    # 创建数据加载器
+    train_dataloader = DataLoader(train_dataset, batch_size=configs.batch_size, shuffle=(train_sampler is None),
+                                  pin_memory=configs.pin_memory, num_workers=configs.num_workers, sampler=train_sampler,
+                                  collate_fn=train_dataset.yolo_collate_fn)  # 使用yolo_collate_fn
+
+    return train_dataloader, train_sampler
+
+
 def create_train_dataloader(configs):
     """用于根据 configs 创建训练数据加载器"""
 

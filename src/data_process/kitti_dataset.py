@@ -224,6 +224,24 @@ class KittiDataset(Dataset):
             return True
         return False
 
+    def yolo_collate_fn(self, batch):
+        paths, imgs, targets = list(zip(*batch))
+
+        # 将所有非空目标拼接为一个张量
+        targets = [boxes for boxes in targets if boxes is not None]
+        for i, boxes in enumerate(targets):
+            # 添加图像索引到目标中（YOLOv8 需要知道目标属于哪个图像）
+            boxes[:, 0] = i
+        if len(targets) > 0:
+            targets = torch.cat(targets, 0)
+        else:
+            targets = torch.zeros((0, 6))  # 如果没有目标，创建一个空的张量
+
+        # 将图像张量拼接为一个批次
+        imgs = torch.stack(imgs)
+
+        return imgs, targets
+
     def collate_fn(self, batch):
         paths, imgs, targets = list(zip(*batch))
         # Remove empty placeholder targets

@@ -1,5 +1,6 @@
 # yolo8_train_config.py
 import argparse
+import torch
 
 def parse_train_configs():
     parser = argparse.ArgumentParser(description='YOLOv8 Training Configuration')
@@ -50,6 +51,9 @@ def parse_train_configs():
     parser.add_argument('--multiscale_training', type=bool, default=True, help='Use multiscale training during training')
 
     # Distributed training settings
+    # Device setting
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
+                        help='Device to use for training (cuda or cpu)')
     parser.add_argument('--gpu_idx', type=int, default=0, help='Index of the GPU to use for training')
     parser.add_argument('--dist_backend', type=str, default='nccl', help='Distributed backend for PyTorch')
     parser.add_argument('--dist_url', type=str, default='env://', help='URL for setting up distributed training')
@@ -57,6 +61,9 @@ def parse_train_configs():
     parser.add_argument('--rank', type=int, default=-1, help='Rank for distributed training')
     parser.add_argument('--ngpus_per_node', type=int, default=1, help='Number of GPUs per node for training')
     parser.add_argument('--multiprocessing_distributed', type=bool, default=False, help='Use multi-processing distributed training')
+
+    # Distributed training settings
+    parser.add_argument('--distributed', type=bool, default=False, help='Use distributed training')
 
     # Paths
     parser.add_argument('--data_path', type=str, default='../dataset/kitti', help='Path to dataset directory')
